@@ -11,7 +11,8 @@
       "condition": "block_state_property",
       "block": "farmersdelight:tall_rice_crop",
       "properties": {
-        "age": "7"
+        "growth": "7",
+        "half": "upper"
       }
     }
   ]

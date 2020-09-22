@@ -11,6 +11,7 @@ import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Direction;
+import net.minecraft.util.IItemProvider;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.shapes.ISelectionContext;
@@ -26,14 +27,14 @@ import vectorwing.farmersdelight.registry.ModItems;
 import javax.annotation.Nullable;
 import java.util.Random;
 
+@SuppressWarnings("deprecation")
 public class RiceCropBlock extends BushBlock implements IWaterLoggable, IGrowable
 {
-	public static final IntegerProperty AGE = IntegerProperty.create("age", 0, 4);
+	public static final IntegerProperty AGE = BlockStateProperties.AGE_0_7;
 	public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 	private static final VoxelShape[] SHAPE_BY_AGE = new VoxelShape[] {
 			Block.makeCuboidShape(5.0D, 0.0D, 5.0D, 11.0D, 6.0D, 11.0D),
 			Block.makeCuboidShape(5.0D, 0.0D, 5.0D, 11.0D, 6.0D, 11.0D),
-			Block.makeCuboidShape(5.0D, 0.0D, 5.0D, 11.0D, 9.0D, 11.0D),
 			Block.makeCuboidShape(5.0D, 0.0D, 5.0D, 11.0D, 9.0D, 11.0D),
 			Block.makeCuboidShape(4.0D, 0.0D, 4.0D, 12.0D, 16.0D, 12.0D)};
 
@@ -42,6 +43,34 @@ public class RiceCropBlock extends BushBlock implements IWaterLoggable, IGrowabl
 		this.setDefaultState(this.getDefaultState().with(WATERLOGGED, true).with(AGE, 0));
 	}
 
+	/**
+	 * Returns the maximum age a short rice crop should be, despite its blockstate reaching up to 7.
+	 */
+	public int getMaxShortAge() { return 3; }
+
+	public int getMaxAge() { return 7; }
+
+	protected int getAge(BlockState state) { return state.get(AGE); }
+
+	protected int getBonemealAgeIncrease(World worldIn) {
+		return MathHelper.nextInt(worldIn.rand, 1, 1);
+	}
+
+	@Override
+	public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+		return SHAPE_BY_AGE[Math.min(state.get(AGE), this.getMaxShortAge())];
+	}
+
+	protected IItemProvider getSeedsItem() {
+		return ModItems.RICE.get();
+	}
+
+	@Override
+	public ItemStack getItem(IBlockReader worldIn, BlockPos pos, BlockState state) {
+		return new ItemStack(this.getSeedsItem());
+	}
+
+	@Override
 	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand) {
 		super.tick(state, worldIn, pos, rand);
 		if (!worldIn.isAreaLoaded(pos, 1)) return;
@@ -50,7 +79,7 @@ public class RiceCropBlock extends BushBlock implements IWaterLoggable, IGrowabl
 			if (i <= this.getMaxAge()) {
 				float f = 10;
 				if (net.minecraftforge.common.ForgeHooks.onCropsGrowPre(worldIn, pos, state, rand.nextInt((int)(25.0F / f) + 1) == 0)) {
-					if (i == 4) {
+					if (i >= this.getMaxShortAge()) {
 						TallRiceCropBlock tallRice = (TallRiceCropBlock) ModBlocks.TALL_RICE_CROP.get();
 						if (tallRice.getDefaultState().isValidPosition(worldIn, pos) && worldIn.isAirBlock(pos.up())) {
 							tallRice.placeAt(worldIn, pos, 2, 6);
@@ -63,14 +92,24 @@ public class RiceCropBlock extends BushBlock implements IWaterLoggable, IGrowabl
 				}
 			}
 		}
-
 	}
 
-	public void grow(World worldIn, BlockPos pos, BlockState state) {
+	@Override
+	public boolean canGrow(IBlockReader worldIn, BlockPos pos, BlockState state, boolean isClient) {
+		return true;
+	}
+
+	@Override
+	public boolean canUseBonemeal(World worldIn, Random rand, BlockPos pos, BlockState state) {
+		return true;
+	}
+
+	@Override
+	public void grow(ServerWorld worldIn, Random rand, BlockPos pos, BlockState state) {
 		int i = this.getAge(state) + this.getBonemealAgeIncrease(worldIn);
 		int j = 7;
 		if (i > j) i = j;
-		if (i <= 4) {
+		if (i <= this.getMaxShortAge()) {
 			worldIn.setBlockState(pos, state.with(AGE, i));
 		} else {
 			TallRiceCropBlock tallRice = (TallRiceCropBlock)ModBlocks.TALL_RICE_CROP.get();
@@ -78,15 +117,6 @@ public class RiceCropBlock extends BushBlock implements IWaterLoggable, IGrowabl
 				tallRice.placeAt(worldIn, pos, 2, i);
 			}
 		}
-	}
-
-	protected int getBonemealAgeIncrease(World worldIn) {
-		return MathHelper.nextInt(worldIn.rand, 2, 5);
-	}
-
-	@Override
-	public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
-		return SHAPE_BY_AGE[state.get(this.getAgeProperty())];
 	}
 
 	public boolean isValidPosition(BlockState state, IWorldReader worldIn, BlockPos pos) {
@@ -99,26 +129,8 @@ public class RiceCropBlock extends BushBlock implements IWaterLoggable, IGrowabl
 		return state.isSolidSide(worldIn, pos, Direction.UP) && (state.getBlock() == Blocks.DIRT || state.getBlock() == Blocks.GRASS_BLOCK || state.getBlock() == ModBlocks.RICH_SOIL.get());
 	}
 
-	public IntegerProperty getAgeProperty() { return AGE; }
-
-	protected int getAge(BlockState state) {
-		return state.get(this.getAgeProperty());
-	}
-
-	public int getMaxAge() {
-		return 4;
-	}
-
-	public ItemStack getItem(IBlockReader worldIn, BlockPos pos, BlockState state) {
-		return new ItemStack(ModItems.RICE.get());
-	}
-
 	public BlockState withAge(int age) {
-		return this.getDefaultState().with(this.getAgeProperty(), Integer.valueOf(age));
-	}
-
-	public boolean isMaxAge(BlockState state) {
-		return state.get(this.getAgeProperty()) >= this.getMaxAge();
+		return this.getDefaultState().with(AGE, age);
 	}
 
 	@Override
@@ -139,20 +151,6 @@ public class RiceCropBlock extends BushBlock implements IWaterLoggable, IGrowabl
 	public BlockState getStateForPlacement(BlockItemUseContext context) {
 		IFluidState ifluidstate = context.getWorld().getFluidState(context.getPos());
 		return ifluidstate.isTagged(FluidTags.WATER) && ifluidstate.getLevel() == 8 ? super.getStateForPlacement(context) : null;
-	}
-
-	public boolean canGrow(IBlockReader worldIn, BlockPos pos, BlockState state, boolean isClient) {
-		return true;
-	}
-
-	public boolean canUseBonemeal(World worldIn, Random rand, BlockPos pos, BlockState state) {
-		return true;
-	}
-
-	@Override
-	public void grow(ServerWorld worldIn, Random rand, BlockPos pos, BlockState state)
-	{
-		this.grow(worldIn, pos, state);
 	}
 
 	public IFluidState getFluidState(BlockState state) {

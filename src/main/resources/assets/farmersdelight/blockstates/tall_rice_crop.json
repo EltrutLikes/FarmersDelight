@@ -1,10 +1,20 @@
 {
   "variants": {
-    "half=upper,age=5":  { "model": "farmersdelight:block/tall_rice_stage3_upper" },
-    "half=lower,age=5":  { "model": "farmersdelight:block/tall_rice_stage3" },
-    "half=upper,age=6":  { "model": "farmersdelight:block/tall_rice_stage4_upper" },
-    "half=lower,age=6":  { "model": "farmersdelight:block/tall_rice_stage4" },
-    "half=upper,age=7":  { "model": "farmersdelight:block/tall_rice_stage5_upper" },
-    "half=lower,age=7":  { "model": "farmersdelight:block/tall_rice_stage5" }
+    "half=upper,growth=0":  { "model": "farmersdelight:block/tall_rice_stage3_upper" },
+    "half=lower,growth=0":  { "model": "farmersdelight:block/tall_rice_stage3" },
+    "half=upper,growth=1":  { "model": "farmersdelight:block/tall_rice_stage3_upper" },
+    "half=lower,growth=1":  { "model": "farmersdelight:block/tall_rice_stage3" },
+    "half=upper,growth=2":  { "model": "farmersdelight:block/tall_rice_stage3_upper" },
+    "half=lower,growth=2":  { "model": "farmersdelight:block/tall_rice_stage3" },
+    "half=upper,growth=3":  { "model": "farmersdelight:block/tall_rice_stage3_upper" },
+    "half=lower,growth=3":  { "model": "farmersdelight:block/tall_rice_stage3" },
+    "half=upper,growth=4":  { "model": "farmersdelight:block/tall_rice_stage3_upper" },
+    "half=lower,growth=4":  { "model": "farmersdelight:block/tall_rice_stage3" },
+    "half=upper,growth=5":  { "model": "farmersdelight:block/tall_rice_stage3_upper" },
+    "half=lower,growth=5":  { "model": "farmersdelight:block/tall_rice_stage3" },
+    "half=upper,growth=6":  { "model": "farmersdelight:block/tall_rice_stage4_upper" },
+    "half=lower,growth=6":  { "model": "farmersdelight:block/tall_rice_stage4" },
+    "half=upper,growth=7":  { "model": "farmersdelight:block/tall_rice_stage5_upper" },
+    "half=lower,growth=7":  { "model": "farmersdelight:block/tall_rice_stage5" }
   }
 }
